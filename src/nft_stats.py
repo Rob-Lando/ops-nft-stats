@@ -108,34 +108,32 @@ def truncate_sqlite_table(db_path,table_name):
 
 ######################################################################################################################################################
 
-print(__name__)
 
-if __name__ == "__main__":
 
-    base = "https://api.opensea.io/api/v1/collection"
+base = "https://api.opensea.io/api/v1/collection"
 
-    collections = dict(enumerate([
-                                'boredapeyachtclub',            'mutant-ape-yacht-club',
-                                'cryptopunks',                  'meebits',
-                                'proof-moonbirds',              'clonex',
-                                'azuki',                        'doodles-official',
-                                'cool-cats-nft',                'world-of-women-nft',
-                                'murakami-flowers-seed',        'goblintownwtf',
-                                'mfers',                        'onchainmonkey',
-                                'cyberbrokers',                 'hashmasks',
-                                'otherdeed',                    'sandbox',
-                                'decentraland',                 'kaiju-kingz',
-                                'deadfellaz',                   'veefriends',
-                                'chromie-squiggle-by-snowfro',  'fidenza-by-tyler-hobbs',
-                                'ringers-by-dmitri-cherniak',   'memories-of-qilin-by-emily-xie',
-                                ]))
+collections = dict(enumerate([
+                            'boredapeyachtclub',            'mutant-ape-yacht-club',
+                            'cryptopunks',                  'meebits',
+                            'proof-moonbirds',              'clonex',
+                            'azuki',                        'doodles-official',
+                            'cool-cats-nft',                'world-of-women-nft',
+                            'murakami-flowers-seed',        'goblintownwtf',
+                            'mfers',                        'onchainmonkey',
+                            'cyberbrokers',                 'hashmasks',
+                            'otherdeed',                    'sandbox',
+                            'decentraland',                 'kaiju-kingz',
+                            'deadfellaz',                   'veefriends',
+                            'chromie-squiggle-by-snowfro',  'fidenza-by-tyler-hobbs',
+                            'ringers-by-dmitri-cherniak',   'memories-of-qilin-by-emily-xie',
+                            ]))
 
-    endpoint = 'stats' # OpenSea API Endpoint to query from 
+endpoint = 'stats' # OpenSea API Endpoint to query from 
 
-    local_db_name = 'open_sea_collection_stats'
+local_db_name = 'open_sea_collection_stats'
 
-    write_to_sqlite_db(
-        df = get_collection_stats(base,collections,endpoint),
-        db_path = rf"C:\sqlite_dbs\{local_db_name}.db"
-        )
+write_to_sqlite_db(
+    df = get_collection_stats(base,collections,endpoint),
+    db_path = rf"C:\sqlite_dbs\{local_db_name}.db"
+    )
 
