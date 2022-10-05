@@ -6,14 +6,14 @@ import seaborn as sns
 import plotly.express as px
 from pprint import pprint as pp
 from datetime import datetime
+import time
 import sqlite3
 
 pd.options.display.max_columns = 100
 
 
-timestamp = datetime.now()
 
-def get_collection_stats(url_base,collection_names,endpoint,timestamp):
+def get_collection_stats(url_base,collection_names,endpoint):
 
     """
     Function to pull real time NFT collection statistics from OpenSea api.
@@ -27,10 +27,12 @@ def get_collection_stats(url_base,collection_names,endpoint,timestamp):
 
             * Query url = url_base/collection_name/endpoint
     """
-
-    timestamp = datetime.now()
-
     headers = {"accept": "application/json"}
+
+    global attempt_number
+    global start
+
+    print(f"\n\nattempt #{attempt_number}\n\n")
 
     df = pd.DataFrame(
 
@@ -41,19 +43,39 @@ def get_collection_stats(url_base,collection_names,endpoint,timestamp):
         
     )
     
-    # get data via .map()
-    df.loc[:,'response'] = [pd.DataFrame(json.loads(requests.get(i, headers=headers).text)).reset_index() for i in df.loc[:,'response']]
-    # add timestamp column
-    df.loc[:,'response'] = df.loc[:,'response'].map(lambda x: add_static_cols(x,{'timestamp':timestamp}))
-    # pivot 
-    df.loc[:,'response'] = df.loc[:,'response'].map(lambda x: x.pivot(index='timestamp', columns='index', values='stats').reset_index())
-
-
-    stack = pd.concat(df.response.to_list()).reset_index(drop = True)
-    stack.insert(1, "collection", df['collection'])
+    try:
+        # get data
+        df.loc[:,'response'] = [pd.DataFrame(json.loads(requests.get(url, headers=headers).text)).reset_index() for url in df.loc[:,'response']]
+        # add timestamp column
+        df.loc[:,'response'] = df.loc[:,'response'].map(lambda x: add_static_cols(x,{'timestamp':start}))
+        # pivot 
+        df.loc[:,'response'] = df.loc[:,'response'].map(lambda x: x.pivot(index='timestamp', columns='index', values='stats').reset_index())
+        
+        stack = pd.concat(df.response.to_list()).reset_index(drop = True)
+        
+        stack.insert(1, "collection", df['collection'])
     
+        return stack
 
-    return stack
+    except json.decoder.JSONDecodeError as err:
+
+        print(err.msg)
+
+        attempt_number += 1
+
+        if attempt_number <= 5:
+            # API is touchy sometimes, wait 30 seconds then try again 
+            time.sleep(30)
+
+            return get_collection_stats(
+                    url_base = url_base,
+                    collection_names = collection_names,
+                    endpoint = endpoint,
+                    )
+        else:
+
+            raise
+
 
 #######################################################################################################################################################    
 
@@ -73,7 +95,7 @@ def add_static_cols(df,col_val_pairs):
 
     for key,value in col_val_pairs.items():
 
-        df[key] = value
+        df.loc[:,key] = value
     
     return df
 
@@ -109,9 +131,11 @@ def truncate_sqlite_table(db_path,table_name):
 
 ######################################################################################################################################################
 
-
-
 base = "https://api.opensea.io/api/v1/collection"
+
+start = datetime.now()
+
+attempt_number = 1
 
 collections = dict(enumerate([
                             'boredapeyachtclub',            'mutant-ape-yacht-club',
@@ -134,7 +158,7 @@ endpoint = 'stats' # OpenSea API Endpoint to query from
 local_db_name = 'open_sea_collection_stats'
 
 write_to_sqlite_db(
-    df = get_collection_stats(base,collections,endpoint,timestamp = timestamp),
+    df = get_collection_stats(base,collections,endpoint),
     db_path = rf"C:\sqlite_dbs\{local_db_name}.db"
     )
-print(datetime.now() - timestamp)
+print(datetime.now() - start)
