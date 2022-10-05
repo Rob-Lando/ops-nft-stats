@@ -11,8 +11,9 @@ import sqlite3
 pd.options.display.max_columns = 100
 
 
+timestamp = datetime.now()
 
-def get_collection_stats(url_base,collection_names,endpoint):
+def get_collection_stats(url_base,collection_names,endpoint,timestamp):
 
     """
     Function to pull real time NFT collection statistics from OpenSea api.
@@ -39,9 +40,9 @@ def get_collection_stats(url_base,collection_names,endpoint):
         }
         
     )
-
+    
     # get data via .map()
-    df.loc[:,'response'] = df.loc[:,'response'].map(lambda x:pd.DataFrame(json.loads(requests.get(x, headers=headers).text)).reset_index())
+    df.loc[:,'response'] = [pd.DataFrame(json.loads(requests.get(i, headers=headers).text)).reset_index() for i in df.loc[:,'response']]
     # add timestamp column
     df.loc[:,'response'] = df.loc[:,'response'].map(lambda x: add_static_cols(x,{'timestamp':timestamp}))
     # pivot 
@@ -133,7 +134,7 @@ endpoint = 'stats' # OpenSea API Endpoint to query from
 local_db_name = 'open_sea_collection_stats'
 
 write_to_sqlite_db(
-    df = get_collection_stats(base,collections,endpoint),
+    df = get_collection_stats(base,collections,endpoint,timestamp = timestamp),
     db_path = rf"C:\sqlite_dbs\{local_db_name}.db"
     )
-
+print(datetime.now() - timestamp)
