@@ -1,6 +1,6 @@
-# nftla-analytics
+# ops-nft-stats
 
-NFT Analytics Engineering for NFT Lords Alpha
+Using Open Sea's public api to pull relevant statistics on select collections.
 
 API LINKS:
 https://docs.opensea.io/reference/retrieving-collection-stats
